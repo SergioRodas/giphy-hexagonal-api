@@ -5,6 +5,7 @@ use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Http\Request;
+use Infrastructure\Http\Middleware\LogInteraction;
 use Throwable;
 
 return Application::configure(basePath: dirname(__DIR__))
@@ -15,7 +16,8 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware) {
-        //
+        // Record every interaction with the API (audit trail requirement).
+        $middleware->appendToGroup('api', LogInteraction::class);
     })
     ->withExceptions(function (Exceptions $exceptions) {
         // API clients always get a JSON error body.
