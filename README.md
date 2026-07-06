@@ -178,6 +178,9 @@ curl -X POST http://localhost:8080/api/login \
   -d '{"email":"demo@giphy-hexagonal.test","password":"password"}'
 ```
 
+Or open the browser **playground** at <http://localhost:8080/playground.html> to
+log in and exercise all four services interactively (it renders the GIFs too).
+
 **Seeded demo account:** `demo@giphy-hexagonal.test` / `password` (id `1`).
 
 Useful commands:
@@ -281,9 +284,13 @@ Response `201 Created`:
 }
 ```
 
+`user_id` must match the authenticated user (it is accepted per the brief but
+bound to the token — see [design decisions](#design-decisions--deviations)).
+
 - `401` — missing/invalid token
+- `403 Forbidden` — `user_id` does not match the authenticated user
 - `409 Conflict` — the user already saved this GIF (unique `user_id + gif_id`)
-- `422` — validation error, or the referenced `user_id` does not exist
+- `422` — validation error
 
 Error responses share a consistent shape:
 
@@ -302,9 +309,9 @@ Every request to the API is persisted in the `request_logs` table via the
 | --- | --- |
 | `user_id` | the authenticated user (null for Login / unauthenticated calls) |
 | `service` | the service consulted (route name, e.g. `gifs.search`) |
-| `request_body` | the request payload — **secrets such as `password` are redacted** |
+| `request_body` | the request payload — **`password` is redacted** |
 | `status_code` | the HTTP response status |
-| `response_body` | the response payload |
+| `response_body` | the response payload — **issued tokens (`access_token`) are redacted** |
 | `ip_address` | the origin IP |
 
 The log is written on `terminate()`, so it also records error responses
@@ -392,8 +399,22 @@ Key environment variables (see [.env.example](.env.example)):
   credentials in the application layer (a testable domain rule) and then issues a
   Bearer access token through the OAuth2 server; protected routes use the
   `auth:api` (Passport) guard. Tokens expire in 30 minutes.
-- **`user_id` in the favorites body.** It is accepted as an input per the brief
-  and validated to reference an existing user. In a stricter design it would be
-  derived from the authenticated token; this is noted as a possible improvement.
+- **`user_id` in the favorites body.** Accepted as input per the brief, but bound
+  to the authenticated principal: a request whose `user_id` differs from the
+  token's user is rejected with `403`, preventing cross-account writes (IDOR).
 - **`config.platform.php = 8.3`** pins Composer's resolver to the runtime PHP so
   the lock file is reproducible against the Docker image.
+
+### Security hardening
+
+Applied after an adversarial self-review of the codebase:
+
+- OAuth2 Bearer auth on every service; login (`10/min`) and the authenticated
+  group (`60/min`) are rate-limited against brute force / abuse.
+- `password` (request) and issued `access_token` (response) are redacted from the
+  audit log.
+- Favorites are bound to the authenticated user (no IDOR).
+- The favorites unique constraint is enforced atomically (concurrent duplicate →
+  `409`, not `500`).
+- HTTP status mapping lives in the infrastructure layer, keeping the domain free
+  of transport concerns.

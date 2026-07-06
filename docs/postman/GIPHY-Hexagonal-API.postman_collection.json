@@ -57,6 +57,7 @@
                             "    pm.environment.set('access_token', json.access_token);",
                             "    pm.environment.set('token_type', json.token_type);",
                             "    pm.environment.set('expires_at', json.expires_at);",
+                            "    try { pm.environment.set('user_id', JSON.parse(atob(json.access_token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/'))).sub); } catch (e) {}",
                             "    pm.test('Access token stored', () => pm.expect(json.access_token).to.be.a('string').and.not.empty);",
                             "    pm.test('Token expires in ~30 minutes', () => pm.expect(json.expires_in).to.be.within(1750, 1800));",
                             "    console.log('Access token saved to environment variable {{access_token}}.');",
@@ -166,7 +167,7 @@
                     "host": ["{{base_url}}"],
                     "path": ["api", "favorites"]
                 },
-                "description": "Store a favorite GIF for a user. Requires authentication.\n\nBusiness rules: the referenced `user_id` must exist (422 otherwise) and a user cannot save the same GIF twice (409 Conflict). Returns 201 Created on success."
+                "description": "Store a favorite GIF for a user. Requires authentication.\n\nBusiness rules: `user_id` must match the authenticated user (403 otherwise; it is set automatically from the login token) and a user cannot save the same GIF twice (409 Conflict). Returns 201 Created on success."
             },
             "event": [
                 {
