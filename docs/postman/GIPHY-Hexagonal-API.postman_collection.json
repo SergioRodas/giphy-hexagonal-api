@@ -1,0 +1,184 @@
+{
+    "info": {
+        "name": "GIPHY Hexagonal API",
+        "description": "REST API that integrates with GIPHY, built with Laravel 12, Hexagonal Architecture + DDD and OAuth2 (Passport).\n\nThe **Login** request automatically stores the returned access token in the active environment variable `access_token`; every other request inherits Bearer auth from the collection, so you only need to log in once.\n\nAll services (except Login) require authentication and every interaction is persisted as an audit log on the server.",
+        "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+    },
+    "auth": {
+        "type": "bearer",
+        "bearer": [
+            {
+                "key": "token",
+                "value": "{{access_token}}",
+                "type": "string"
+            }
+        ]
+    },
+    "item": [
+        {
+            "name": "Login",
+            "request": {
+                "auth": {
+                    "type": "noauth"
+                },
+                "method": "POST",
+                "header": [
+                    {
+                        "key": "Accept",
+                        "value": "application/json"
+                    },
+                    {
+                        "key": "Content-Type",
+                        "value": "application/json"
+                    }
+                ],
+                "body": {
+                    "mode": "raw",
+                    "raw": "{\n    \"email\": \"{{email}}\",\n    \"password\": \"{{password}}\"\n}"
+                },
+                "url": {
+                    "raw": "{{base_url}}/api/login",
+                    "host": ["{{base_url}}"],
+                    "path": ["api", "login"]
+                },
+                "description": "Authenticate with e-mail and password. Returns an OAuth2 Bearer access token that expires in 30 minutes.\n\nOn success the test script stores `access_token`, `token_type` and `expires_at` in the active environment so the following requests are authenticated automatically."
+            },
+            "event": [
+                {
+                    "listen": "test",
+                    "script": {
+                        "type": "text/javascript",
+                        "exec": [
+                            "const ok = pm.response.code === 200;",
+                            "pm.test('Status is 200', () => pm.response.to.have.status(200));",
+                            "",
+                            "if (ok) {",
+                            "    const json = pm.response.json();",
+                            "    pm.environment.set('access_token', json.access_token);",
+                            "    pm.environment.set('token_type', json.token_type);",
+                            "    pm.environment.set('expires_at', json.expires_at);",
+                            "    pm.test('Access token stored', () => pm.expect(json.access_token).to.be.a('string').and.not.empty);",
+                            "    pm.test('Token expires in ~30 minutes', () => pm.expect(json.expires_in).to.be.within(1750, 1800));",
+                            "    console.log('Access token saved to environment variable {{access_token}}.');",
+                            "}"
+                        ]
+                    }
+                }
+            ]
+        },
+        {
+            "name": "Search GIFs",
+            "request": {
+                "method": "GET",
+                "header": [
+                    {
+                        "key": "Accept",
+                        "value": "application/json"
+                    }
+                ],
+                "url": {
+                    "raw": "{{base_url}}/api/gifs/search?query=cat&limit=10&offset=0",
+                    "host": ["{{base_url}}"],
+                    "path": ["api", "gifs", "search"],
+                    "query": [
+                        {
+                            "key": "query",
+                            "value": "cat",
+                            "description": "Required. Search phrase or term."
+                        },
+                        {
+                            "key": "limit",
+                            "value": "10",
+                            "description": "Optional. 1-50 (default 25)."
+                        },
+                        {
+                            "key": "offset",
+                            "value": "0",
+                            "description": "Optional. >= 0 (default 0)."
+                        }
+                    ]
+                },
+                "description": "Search GIFs by a phrase or term. Requires authentication. Returns a collection with pagination metadata."
+            },
+            "event": [
+                {
+                    "listen": "test",
+                    "script": {
+                        "type": "text/javascript",
+                        "exec": [
+                            "pm.test('Status is 200', () => pm.response.to.have.status(200));",
+                            "pm.test('Has data array', () => pm.expect(pm.response.json().data).to.be.an('array'));"
+                        ]
+                    }
+                }
+            ]
+        },
+        {
+            "name": "Get GIF by ID",
+            "request": {
+                "method": "GET",
+                "header": [
+                    {
+                        "key": "Accept",
+                        "value": "application/json"
+                    }
+                ],
+                "url": {
+                    "raw": "{{base_url}}/api/gifs/{{gif_id}}",
+                    "host": ["{{base_url}}"],
+                    "path": ["api", "gifs", "{{gif_id}}"]
+                },
+                "description": "Retrieve the information of a single GIF by its identifier. Requires authentication. Returns 404 if the GIF does not exist.\n\nNote: GIPHY identifiers are alphanumeric (e.g. `Ev477g37MJORyOWfdG`)."
+            },
+            "event": [
+                {
+                    "listen": "test",
+                    "script": {
+                        "type": "text/javascript",
+                        "exec": [
+                            "pm.test('Status is 200', () => pm.response.to.have.status(200));",
+                            "pm.test('Returns the requested id', () => pm.expect(pm.response.json().data.id).to.eql(pm.environment.get('gif_id')));"
+                        ]
+                    }
+                }
+            ]
+        },
+        {
+            "name": "Save Favorite GIF",
+            "request": {
+                "method": "POST",
+                "header": [
+                    {
+                        "key": "Accept",
+                        "value": "application/json"
+                    },
+                    {
+                        "key": "Content-Type",
+                        "value": "application/json"
+                    }
+                ],
+                "body": {
+                    "mode": "raw",
+                    "raw": "{\n    \"gif_id\": \"{{gif_id}}\",\n    \"alias\": \"My favourite cat\",\n    \"user_id\": {{user_id}}\n}"
+                },
+                "url": {
+                    "raw": "{{base_url}}/api/favorites",
+                    "host": ["{{base_url}}"],
+                    "path": ["api", "favorites"]
+                },
+                "description": "Store a favorite GIF for a user. Requires authentication.\n\nBusiness rules: the referenced `user_id` must exist (422 otherwise) and a user cannot save the same GIF twice (409 Conflict). Returns 201 Created on success."
+            },
+            "event": [
+                {
+                    "listen": "test",
+                    "script": {
+                        "type": "text/javascript",
+                        "exec": [
+                            "pm.test('Status is 201 (or 409 if already saved)', () => pm.expect([201, 409]).to.include(pm.response.code));"
+                        ]
+                    }
+                }
+            ]
+        }
+    ]
+}
