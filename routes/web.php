@@ -1,10 +1,6 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use Infrastructure\Http\Controllers\ApiInfoController;
 
-Route::get('/', fn () => response()->json([
-    'name' => config('app.name'),
-    'description' => 'GIPHY integration REST API (Hexagonal Architecture + DDD).',
-    'docs' => 'See README.md and the Postman collection under /docs.',
-    'health' => url('/up'),
-]));
+Route::get('/', ApiInfoController::class);
