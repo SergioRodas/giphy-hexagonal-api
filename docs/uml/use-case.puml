@@ -1,0 +1,39 @@
+@startuml use-case
+' GIPHY Hexagonal API - Use Case Diagram
+left to right direction
+skinparam actorStyle awesome
+skinparam packageStyle rectangle
+title GIPHY Hexagonal API - Use Cases
+
+actor "API Client" as client
+actor "GIPHY API" as giphy
+
+rectangle "GIPHY Hexagonal API" {
+  usecase "Login\n(email/password -> OAuth2 token)" as UC1
+  usecase "Search GIFs" as UC2
+  usecase "Get GIF by ID" as UC3
+  usecase "Save Favorite GIF" as UC4
+  usecase "Authenticate (OAuth2 Bearer)" as AUTH
+  usecase "Persist Interaction Log" as LOG
+  usecase "Query GIPHY" as QUERY
+}
+
+client --> UC1
+client --> UC2
+client --> UC3
+client --> UC4
+
+UC2 ..> AUTH : <<include>>
+UC3 ..> AUTH : <<include>>
+UC4 ..> AUTH : <<include>>
+
+UC1 ..> LOG : <<include>>
+UC2 ..> LOG : <<include>>
+UC3 ..> LOG : <<include>>
+UC4 ..> LOG : <<include>>
+
+UC2 ..> QUERY : <<include>>
+UC3 ..> QUERY : <<include>>
+
+QUERY --> giphy
+@enduml

@@ -1,0 +1,77 @@
+@startuml der
+' GIPHY Hexagonal API - Data Model / DER
+title GIPHY Hexagonal API - Entity Relationship Diagram
+hide circle
+skinparam linetype ortho
+
+entity "users" as users {
+  * id : bigint <<PK>>
+  --
+  * name : string
+  * email : string <<UK>>
+  * password : string
+  email_verified_at : timestamp
+  created_at / updated_at
+}
+
+entity "favorites" as favorites {
+  * id : bigint <<PK>>
+  --
+  * user_id : bigint <<FK>>
+  * gif_id : string
+  * alias : string(100)
+  created_at / updated_at
+  --
+  unique (user_id, gif_id)
+}
+
+entity "request_logs" as logs {
+  * id : bigint <<PK>>
+  --
+  user_id : bigint <<FK, nullable>>
+  * service : string
+  * method : string
+  * path : string
+  request_body : json
+  * status_code : smallint
+  response_body : longtext
+  ip_address : string
+  created_at : timestamp
+}
+
+entity "oauth_clients" as clients {
+  * id : uuid <<PK>>
+  --
+  owner_type / owner_id : nullable
+  * name : string
+  secret : string
+  provider : string
+  redirect_uris : text
+  grant_types : text
+  * revoked : boolean
+}
+
+entity "oauth_access_tokens" as tokens {
+  * id : string <<PK>>
+  --
+  user_id : bigint <<nullable>>
+  * client_id : uuid <<FK>>
+  scopes : text
+  * revoked : boolean
+  expires_at : timestamp
+}
+
+entity "oauth_refresh_tokens" as refresh {
+  * id : string <<PK>>
+  --
+  * access_token_id : string <<FK>>
+  * revoked : boolean
+  expires_at : timestamp
+}
+
+users ||--o{ favorites
+users ||--o{ logs
+users ||--o{ tokens
+clients ||--o{ tokens
+tokens ||--o| refresh
+@enduml

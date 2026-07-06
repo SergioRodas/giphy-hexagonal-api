@@ -1,0 +1,65 @@
+@startuml sequence
+' GIPHY Hexagonal API - Sequence Diagrams for all use cases
+title GIPHY Hexagonal API - Sequences
+
+actor "API Client" as C
+participant "AuthController" as AC
+participant "GifController" as GC
+participant "FavoriteController" as FC
+participant "Use Case" as UC
+participant "«port»\nRepositories" as PORT
+participant "«adapter»\nGIPHY / Eloquent" as ADP
+participant "GIPHY API" as G
+database "MariaDB" as DB
+participant "LogInteraction\n(terminate)" as LOG
+
+== Login ==
+C -> AC : POST /api/login {email, password}
+AC -> UC : LoginUseCase.execute(LoginCommand)
+UC -> PORT : findByEmail / verify / issueFor
+PORT -> DB : SELECT user / INSERT access token
+PORT --> UC : AuthToken (30 min) or InvalidCredentials
+UC --> AC : AuthToken
+AC --> C : 200 {access_token, expires_in} / 401
+AC -> LOG : response sent
+LOG -> DB : INSERT request_logs (password redacted)
+
+== Search GIFs ==
+C -> GC : GET /api/gifs/search?query (Bearer)
+GC -> UC : SearchGifsUseCase.execute(SearchGifsQuery)
+UC -> PORT : GifRepository.search(SearchCriteria)
+PORT -> ADP : GiphyGifRepository.search
+ADP -> G : GET /v1/gifs/search
+G --> ADP : JSON payload
+ADP --> UC : GifSearchResult
+UC --> GC : GifSearchResult
+GC --> C : 200 {data[], pagination}
+GC -> LOG : response sent
+LOG -> DB : INSERT request_logs
+
+== Get GIF by ID ==
+C -> GC : GET /api/gifs/{id} (Bearer)
+GC -> UC : GetGifByIdUseCase.execute(GetGifByIdQuery)
+UC -> PORT : GifRepository.findById(GifId)
+PORT -> ADP : GiphyGifRepository.findById
+ADP -> G : GET /v1/gifs/{id}
+G --> ADP : 200 / 404
+ADP --> UC : Gif or GifNotFound
+UC --> GC : Gif
+GC --> C : 200 {data} / 404
+GC -> LOG : response sent
+LOG -> DB : INSERT request_logs
+
+== Save Favorite GIF ==
+C -> FC : POST /api/favorites {gif_id, alias, user_id} (Bearer)
+FC -> UC : SaveFavoriteUseCase.execute(SaveFavoriteCommand)
+UC -> PORT : UserRepository.exists / FavoriteRepository.existsForUserAndGif
+PORT -> DB : SELECT users / favorites
+UC -> PORT : FavoriteRepository.save(Favorite)
+PORT -> DB : INSERT favorites
+PORT --> UC : Favorite / UserNotFound / FavoriteAlreadyExists
+UC --> FC : Favorite
+FC --> C : 201 {data} / 422 / 409
+FC -> LOG : response sent
+LOG -> DB : INSERT request_logs
+@enduml
