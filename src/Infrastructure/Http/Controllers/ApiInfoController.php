@@ -18,6 +18,7 @@ final class ApiInfoController
             'name' => config('app.name'),
             'description' => 'GIPHY integration REST API (Hexagonal Architecture + DDD).',
             'documentation' => 'See README.md and the Postman collection under /docs.',
+            'playground' => url('/playground.html'),
             'health' => url('/up'),
             'services' => [
                 'login' => 'POST /api/login',

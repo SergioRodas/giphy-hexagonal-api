@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GIPHY Hexagonal API — Playground</title>
+<style>
+  :root {
+    --bg: #0f172a; --card: #1e293b; --muted: #94a3b8; --text: #e2e8f0;
+    --accent: #6366f1; --accent2: #22d3ee; --ok: #22c55e; --err: #ef4444; --line: #334155;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    background: radial-gradient(1200px 600px at 20% -10%, #1e293b, var(--bg)); color: var(--text);
+    min-height: 100vh; padding: 24px;
+  }
+  header { max-width: 1080px; margin: 0 auto 20px; display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+  header h1 { font-size: 20px; margin: 0; font-weight: 700; }
+  header .sub { color: var(--muted); font-size: 13px; }
+  .badge { margin-left: auto; padding: 6px 12px; border-radius: 999px; font-size: 13px; font-weight: 600;
+    background: #3f1d2b; color: #fca5a5; border: 1px solid #7f1d1d; }
+  .badge.on { background: #052e1a; color: #86efac; border-color: #166534; }
+  main { max-width: 1080px; margin: 0 auto; display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 18px; }
+  .card h2 { margin: 0 0 4px; font-size: 15px; }
+  .card .method { font-size: 12px; color: var(--accent2); font-family: ui-monospace, monospace; margin-bottom: 12px; }
+  label { display: block; font-size: 12px; color: var(--muted); margin: 10px 0 4px; }
+  input {
+    width: 100%; padding: 9px 11px; border-radius: 9px; border: 1px solid var(--line);
+    background: #0b1220; color: var(--text); font-size: 14px;
+  }
+  input:focus { outline: 2px solid var(--accent); border-color: transparent; }
+  .row { display: flex; gap: 10px; }
+  .row > div { flex: 1; }
+  button {
+    margin-top: 14px; width: 100%; padding: 10px; border: 0; border-radius: 10px; cursor: pointer;
+    background: linear-gradient(90deg, var(--accent), #8b5cf6); color: white; font-weight: 700; font-size: 14px;
+  }
+  button:hover { filter: brightness(1.1); }
+  button:disabled { opacity: .5; cursor: not-allowed; }
+  .full { grid-column: 1 / -1; }
+  .console { background: #0b1220; border: 1px solid var(--line); border-radius: 14px; padding: 16px; }
+  .console .status { font-family: ui-monospace, monospace; font-size: 13px; margin-bottom: 8px; }
+  .status.ok { color: var(--ok); } .status.err { color: var(--err); }
+  pre { margin: 0; white-space: pre-wrap; word-break: break-word; font-family: ui-monospace, monospace;
+    font-size: 12.5px; color: #cbd5e1; max-height: 260px; overflow: auto; }
+  .gifs { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+  .gifs figure { margin: 0; width: 120px; }
+  .gifs img { width: 120px; height: 120px; object-fit: cover; border-radius: 8px; border: 1px solid var(--line); background:#0b1220; }
+  .gifs figcaption { font-size: 10px; color: var(--muted); margin-top: 4px; word-break: break-all; }
+  a { color: var(--accent2); }
+  @media (max-width: 760px) { main { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+<header>
+  <div>
+    <h1>🐢 GIPHY Hexagonal API — Playground</h1>
+    <div class="sub">Log in once, then try every service. Requests hit <code>/api/*</code> on this host.</div>
+  </div>
+  <div id="tokenBadge" class="badge">Not authenticated</div>
+</header>
+
+<main>
+  <section class="card">
+    <h2>1 · Login</h2>
+    <div class="method">POST /api/login</div>
+    <label>Email</label>
+    <input id="email" value="demo@giphy-hexagonal.test">
+    <label>Password</label>
+    <input id="password" type="password" value="password">
+    <button onclick="login()">Log in</button>
+  </section>
+
+  <section class="card">
+    <h2>2 · Search GIFs</h2>
+    <div class="method">GET /api/gifs/search</div>
+    <label>Query (required)</label>
+    <input id="q" value="cat">
+    <div class="row">
+      <div><label>Limit</label><input id="limit" value="6"></div>
+      <div><label>Offset</label><input id="offset" value="0"></div>
+    </div>
+    <button onclick="search()">Search</button>
+  </section>
+
+  <section class="card">
+    <h2>3 · Get GIF by ID</h2>
+    <div class="method">GET /api/gifs/{id}</div>
+    <label>GIF id (alphanumeric)</label>
+    <input id="gifId" value="Ev477g37MJORyOWfdG">
+    <button onclick="getById()">Fetch</button>
+  </section>
+
+  <section class="card">
+    <h2>4 · Save Favorite</h2>
+    <div class="method">POST /api/favorites</div>
+    <label>GIF id</label>
+    <input id="favGifId" value="Ev477g37MJORyOWfdG">
+    <div class="row">
+      <div><label>Alias</label><input id="alias" value="My favourite cat"></div>
+      <div><label>User id (must match token)</label><input id="userId" value=""></div>
+    </div>
+    <button onclick="saveFavorite()">Save favorite</button>
+  </section>
+
+  <section class="console full">
+    <div id="status" class="status">Response will appear here.</div>
+    <div id="gifs" class="gifs"></div>
+    <pre id="out"></pre>
+  </section>
+</main>
+
+<script>
+  let token = localStorage.getItem('gh_token') || '';
+  let userId = localStorage.getItem('gh_user_id') || '';
+  const $ = (id) => document.getElementById(id);
+
+  function refreshBadge() {
+    const b = $('tokenBadge');
+    if (token) { b.textContent = 'Authenticated · user #' + (userId || '?'); b.classList.add('on'); }
+    else { b.textContent = 'Not authenticated'; b.classList.remove('on'); }
+    if (userId && !$('userId').value) $('userId').value = userId;
+  }
+
+  function show(status, ok, body, gifs) {
+    const s = $('status');
+    s.textContent = 'HTTP ' + status;
+    s.className = 'status ' + (ok ? 'ok' : 'err');
+    $('out').textContent = typeof body === 'string' ? body : JSON.stringify(body, null, 2);
+    const g = $('gifs'); g.innerHTML = '';
+    (gifs || []).forEach((gif) => {
+      const url = gif.images?.preview?.url || gif.images?.original?.url;
+      if (!url) return;
+      const fig = document.createElement('figure');
+      fig.innerHTML = '<img src="' + url + '" alt=""><figcaption>' + gif.id + '</figcaption>';
+      g.appendChild(fig);
+    });
+  }
+
+  async function call(method, path, body) {
+    const headers = { 'Accept': 'application/json' };
+    if (body) headers['Content-Type'] = 'application/json';
+    if (token) headers['Authorization'] = 'Bearer ' + token;
+    try {
+      const res = await fetch(path, { method, headers, body: body ? JSON.stringify(body) : undefined });
+      const text = await res.text();
+      let json; try { json = JSON.parse(text); } catch { json = text; }
+      return { status: res.status, ok: res.ok, json };
+    } catch (e) {
+      return { status: 0, ok: false, json: 'Network error: ' + e.message };
+    }
+  }
+
+  function decodeSub(jwt) {
+    try {
+      const payload = JSON.parse(atob(jwt.split('.')[1].replace(/-/g, '+').replace(/_/g, '/')));
+      return payload.sub;
+    } catch { return ''; }
+  }
+
+  async function login() {
+    const r = await call('POST', '/api/login', { email: $('email').value, password: $('password').value });
+    if (r.ok && r.json.access_token) {
+      token = r.json.access_token;
+      userId = decodeSub(token) || '';
+      localStorage.setItem('gh_token', token);
+      localStorage.setItem('gh_user_id', userId);
+      $('userId').value = userId;
+    }
+    refreshBadge();
+    show(r.status, r.ok, r.json);
+  }
+
+  async function search() {
+    const p = new URLSearchParams({ query: $('q').value, limit: $('limit').value, offset: $('offset').value });
+    const r = await call('GET', '/api/gifs/search?' + p.toString());
+    show(r.status, r.ok, r.json, r.ok ? r.json.data : []);
+  }
+
+  async function getById() {
+    const r = await call('GET', '/api/gifs/' + encodeURIComponent($('gifId').value));
+    show(r.status, r.ok, r.json, r.ok ? [r.json.data] : []);
+  }
+
+  async function saveFavorite() {
+    const r = await call('POST', '/api/favorites', {
+      gif_id: $('favGifId').value, alias: $('alias').value, user_id: Number($('userId').value),
+    });
+    show(r.status, r.ok, r.json);
+  }
+
+  refreshBadge();
+</script>
+</body>
+</html>
