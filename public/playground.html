@@ -42,7 +42,14 @@
   .full { grid-column: 1 / -1; }
   .console { background: #0b1220; border: 1px solid var(--line); border-radius: 14px; padding: 16px; }
   .console .status { font-family: ui-monospace, monospace; font-size: 13px; margin-bottom: 8px; }
-  .status.ok { color: var(--ok); } .status.err { color: var(--err); }
+  .status.ok { color: var(--ok); } .status.err { color: var(--err); } .status.loading { color: var(--accent2); }
+  .spinner { display: inline-block; width: 13px; height: 13px; vertical-align: -2px;
+    border: 2px solid var(--line); border-top-color: var(--accent2); border-radius: 50%;
+    animation: spin .7s linear infinite; margin-right: 6px; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  button.loading { position: relative; color: transparent; }
+  button.loading::after { content: ""; position: absolute; inset: 0; margin: auto; width: 16px; height: 16px;
+    border: 2px solid rgba(255,255,255,.5); border-top-color: #fff; border-radius: 50%; animation: spin .7s linear infinite; }
   pre { margin: 0; white-space: pre-wrap; word-break: break-word; font-family: ui-monospace, monospace;
     font-size: 12.5px; color: #cbd5e1; max-height: 260px; overflow: auto; }
   .gifs { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
@@ -70,7 +77,7 @@
     <input id="email" value="demo@giphy-hexagonal.test">
     <label>Password</label>
     <input id="password" type="password" value="password">
-    <button onclick="login()">Log in</button>
+    <button onclick="login(this)">Log in</button>
   </section>
 
   <section class="card">
@@ -82,7 +89,7 @@
       <div><label>Limit</label><input id="limit" value="6"></div>
       <div><label>Offset</label><input id="offset" value="0"></div>
     </div>
-    <button onclick="search()">Search</button>
+    <button onclick="search(this)">Search</button>
   </section>
 
   <section class="card">
@@ -90,7 +97,7 @@
     <div class="method">GET /api/gifs/{id}</div>
     <label>GIF id (alphanumeric)</label>
     <input id="gifId" value="Ev477g37MJORyOWfdG">
-    <button onclick="getById()">Fetch</button>
+    <button onclick="getById(this)">Fetch</button>
   </section>
 
   <section class="card">
@@ -102,7 +109,7 @@
       <div><label>Alias</label><input id="alias" value="My favourite cat"></div>
       <div><label>User id (must match token)</label><input id="userId" value=""></div>
     </div>
-    <button onclick="saveFavorite()">Save favorite</button>
+    <button onclick="saveFavorite(this)">Save favorite</button>
   </section>
 
   <section class="console full">
@@ -160,35 +167,83 @@
     } catch { return ''; }
   }
 
-  async function login() {
-    const r = await call('POST', '/api/login', { email: $('email').value, password: $('password').value });
-    if (r.ok && r.json.access_token) {
-      token = r.json.access_token;
-      userId = decodeSub(token) || '';
-      localStorage.setItem('gh_token', token);
-      localStorage.setItem('gh_user_id', userId);
-      $('userId').value = userId;
-    }
-    refreshBadge();
-    show(r.status, r.ok, r.json);
-  }
+  // ---- Request lifecycle: lock the UI + show a loader while a call is in flight ----
+  let busy = false;
 
-  async function search() {
-    const p = new URLSearchParams({ query: $('q').value, limit: $('limit').value, offset: $('offset').value });
-    const r = await call('GET', '/api/gifs/search?' + p.toString());
-    show(r.status, r.ok, r.json, r.ok ? r.json.data : []);
-  }
-
-  async function getById() {
-    const r = await call('GET', '/api/gifs/' + encodeURIComponent($('gifId').value));
-    show(r.status, r.ok, r.json, r.ok ? [r.json.data] : []);
-  }
-
-  async function saveFavorite() {
-    const r = await call('POST', '/api/favorites', {
-      gif_id: $('favGifId').value, alias: $('alias').value, user_id: Number($('userId').value),
+  function setBusy(on, activeButton) {
+    document.querySelectorAll('main button').forEach((b) => {
+      b.disabled = on;
+      b.classList.toggle('loading', on && b === activeButton);
     });
-    show(r.status, r.ok, r.json);
+  }
+
+  function showLoading() {
+    const s = $('status');
+    s.className = 'status loading';
+    s.innerHTML = '<span class="spinner"></span>Sending request…';
+    $('gifs').innerHTML = '';
+    $('out').textContent = '';
+  }
+
+  // Runs an action while blocking every button and showing a loader. Repeated
+  // clicks are ignored, and the loader stays visible for at least 300ms so fast
+  // local responses are still perceptible.
+  async function execute(button, action) {
+    if (busy) return;
+    busy = true;
+    setBusy(true, button);
+    showLoading();
+    const startedAt = Date.now();
+    let result;
+    try {
+      result = await action();
+    } catch (e) {
+      result = { status: 0, ok: false, body: 'Error: ' + e.message };
+    }
+    const elapsed = Date.now() - startedAt;
+    if (elapsed < 300) await new Promise((r) => setTimeout(r, 300 - elapsed));
+    setBusy(false, button);
+    busy = false;
+    if (result) show(result.status, result.ok, result.body, result.gifs);
+  }
+
+  function login(button) {
+    return execute(button, async () => {
+      const r = await call('POST', '/api/login', { email: $('email').value, password: $('password').value });
+      if (r.ok && r.json.access_token) {
+        token = r.json.access_token;
+        userId = decodeSub(token) || '';
+        localStorage.setItem('gh_token', token);
+        localStorage.setItem('gh_user_id', userId);
+        $('userId').value = userId;
+      }
+      refreshBadge();
+      return { status: r.status, ok: r.ok, body: r.json };
+    });
+  }
+
+  function search(button) {
+    return execute(button, async () => {
+      const p = new URLSearchParams({ query: $('q').value, limit: $('limit').value, offset: $('offset').value });
+      const r = await call('GET', '/api/gifs/search?' + p.toString());
+      return { status: r.status, ok: r.ok, body: r.json, gifs: r.ok ? r.json.data : [] };
+    });
+  }
+
+  function getById(button) {
+    return execute(button, async () => {
+      const r = await call('GET', '/api/gifs/' + encodeURIComponent($('gifId').value));
+      return { status: r.status, ok: r.ok, body: r.json, gifs: r.ok ? [r.json.data] : [] };
+    });
+  }
+
+  function saveFavorite(button) {
+    return execute(button, async () => {
+      const r = await call('POST', '/api/favorites', {
+        gif_id: $('favGifId').value, alias: $('alias').value, user_id: Number($('userId').value),
+      });
+      return { status: r.status, ok: r.ok, body: r.json };
+    });
   }
 
   refreshBadge();
