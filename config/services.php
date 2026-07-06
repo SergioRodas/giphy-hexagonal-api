@@ -35,4 +35,23 @@ return [
         ],
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | GIPHY API
+    |--------------------------------------------------------------------------
+    |
+    | Credentials and connection settings for the external GIPHY provider that
+    | the application integrates with. Get a free API key at
+    | https://developers.giphy.com/dashboard/.
+    |
+    */
+
+    'giphy' => [
+        'key' => env('GIPHY_API_KEY'),
+        'base_url' => env('GIPHY_BASE_URL', 'https://api.giphy.com/v1'),
+        'timeout' => (int) env('GIPHY_TIMEOUT', 10),
+        'rating' => env('GIPHY_RATING', 'g'),
+        'lang' => env('GIPHY_LANG', 'en'),
+    ],
+
 ];
