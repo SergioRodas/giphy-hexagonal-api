@@ -24,13 +24,16 @@ use Throwable;
 final class LogInteraction
 {
     /**
-     * Fields that must never be persisted in clear text.
+     * Request fields that must never be persisted in clear text.
      */
-    private const array REDACTED = ['password', 'password_confirmation'];
+    private const array REDACTED_REQUEST = ['password', 'password_confirmation'];
 
-    public function __construct(private readonly RequestLogRepository $logs)
-    {
-    }
+    /**
+     * Response fields (issued credentials) that must never be persisted in clear text.
+     */
+    private const array REDACTED_RESPONSE = ['access_token', 'refresh_token', 'token'];
+
+    public function __construct(private readonly RequestLogRepository $logs) {}
 
     public function handle(Request $request, Closure $next): Response
     {
@@ -39,6 +42,12 @@ final class LogInteraction
 
     public function terminate(Request $request, Response $response): void
     {
+        // Registered globally so unmatched /api/* requests (404/405) are audited
+        // too; only API interactions are recorded.
+        if (! $request->is('api/*')) {
+            return;
+        }
+
         try {
             $this->logs->save(new RequestLog(
                 $this->resolveUserId($request),
@@ -79,15 +88,7 @@ final class LogInteraction
      */
     private function requestBody(Request $request): array
     {
-        $body = $request->all();
-
-        foreach (self::REDACTED as $field) {
-            if (array_key_exists($field, $body)) {
-                $body[$field] = '[REDACTED]';
-            }
-        }
-
-        return $body;
+        return $this->redact($request->all(), self::REDACTED_REQUEST);
     }
 
     /**
@@ -103,8 +104,27 @@ final class LogInteraction
 
         $decoded = json_decode($content, true);
 
-        return is_array($decoded)
-            ? $decoded
-            : ['raw' => Str::limit($content, 2000)];
+        if (! is_array($decoded)) {
+            return ['raw' => Str::limit($content, 2000)];
+        }
+
+        // Never persist issued credentials (e.g. the login access token) in clear text.
+        return $this->redact($decoded, self::REDACTED_RESPONSE);
+    }
+
+    /**
+     * @param  array<string, mixed>  $data
+     * @param  list<string>  $fields
+     * @return array<string, mixed>
+     */
+    private function redact(array $data, array $fields): array
+    {
+        foreach ($fields as $field) {
+            if (array_key_exists($field, $data)) {
+                $data[$field] = '[REDACTED]';
+            }
+        }
+
+        return $data;
     }
 }
