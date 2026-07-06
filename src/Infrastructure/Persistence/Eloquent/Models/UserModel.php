@@ -5,28 +5,32 @@ declare(strict_types=1);
 namespace Infrastructure\Persistence\Eloquent\Models;
 
 use Database\Factories\UserFactory;
+use Domain\User\Entity\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Infrastructure\Persistence\Eloquent\EloquentUserRepository;
+use Laravel\Passport\Contracts\OAuthenticatable;
 use Laravel\Passport\HasApiTokens;
 
 /**
  * Eloquent persistence model for the authenticatable user.
  *
  * This is an infrastructure adapter: it carries the Passport/Authenticatable
- * plumbing and is mapped to/from the {@see \Domain\User\Entity\User} aggregate
- * by {@see \Infrastructure\Persistence\Eloquent\EloquentUserRepository}.
+ * plumbing and is mapped to/from the {@see User} aggregate
+ * by {@see EloquentUserRepository}.
  *
  * @property int $id
  * @property string $name
  * @property string $email
  * @property string $password
  */
-class UserModel extends Authenticatable
+class UserModel extends Authenticatable implements OAuthenticatable
 {
     /** @use HasFactory<UserFactory> */
     use HasApiTokens;
+
     use HasFactory;
     use Notifiable;
 
