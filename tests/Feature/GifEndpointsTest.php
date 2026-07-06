@@ -78,6 +78,17 @@ final class GifEndpointsTest extends TestCase
             ->assertJsonPath('error', 'gif_not_found');
     }
 
+    #[Test]
+    public function it_returns_502_when_the_provider_is_unavailable(): void
+    {
+        Http::fake(['*/gifs/search*' => Http::response('gateway error', 500)]);
+        Passport::actingAs($this->user);
+
+        $this->getJson('/api/gifs/search?query=cats')
+            ->assertStatus(502)
+            ->assertJsonPath('error', 'gif_provider_unavailable');
+    }
+
     /**
      * @return array<string, mixed>
      */

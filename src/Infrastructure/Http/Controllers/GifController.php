@@ -8,7 +8,6 @@ use Application\Gif\Search\SearchGifsQuery;
 use Application\Gif\Search\SearchGifsUseCase;
 use Application\Gif\Show\GetGifByIdQuery;
 use Application\Gif\Show\GetGifByIdUseCase;
-use Domain\Gif\Entity\Gif;
 use Illuminate\Http\JsonResponse;
 use Infrastructure\Http\Requests\SearchGifsRequest;
 use Infrastructure\Http\Resources\GifResource;
@@ -26,19 +25,13 @@ final class GifController
             $request->offsetOrNull(),
         ));
 
-        $gifs = array_map(
-            fn (Gif $gif): array => (new GifResource($gif))->toArray($request),
-            $result->gifs(),
-        );
-
-        return response()->json([
-            'data' => $gifs,
-            'pagination' => [
+        return GifResource::collection($result->gifs())
+            ->additional(['pagination' => [
                 'total_count' => $result->pagination()->totalCount(),
                 'count' => $result->pagination()->count(),
                 'offset' => $result->pagination()->offset(),
-            ],
-        ]);
+            ]])
+            ->response();
     }
 
     /**
