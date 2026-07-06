@@ -33,5 +33,6 @@ RUN composer dump-autoload --optimize --no-scripts \
 
 EXPOSE 9000
 
-ENTRYPOINT ["docker/php/entrypoint.sh"]
+# Invoked via "sh" so the script runs even when a bind mount drops the exec bit.
+ENTRYPOINT ["sh", "docker/php/entrypoint.sh"]
 CMD ["php-fpm"]
