@@ -16,9 +16,12 @@ use Infrastructure\Http\Controllers\GifController;
 |
 */
 
-Route::post('/login', [AuthController::class, 'login'])->name('auth.login');
+// Public: throttled to slow down credential stuffing / brute force.
+Route::post('/login', [AuthController::class, 'login'])
+    ->middleware('throttle:10,1')
+    ->name('auth.login');
 
-Route::middleware('auth:api')->group(function () {
+Route::middleware(['auth:api', 'throttle:60,1'])->group(function () {
     // Order matters: the literal /gifs/search must win over /gifs/{id}.
     Route::get('/gifs/search', [GifController::class, 'search'])->name('gifs.search');
     Route::get('/gifs/{id}', [GifController::class, 'show'])->name('gifs.show');
