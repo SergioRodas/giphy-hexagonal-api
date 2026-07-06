@@ -2,22 +2,24 @@
 
 namespace Database\Seeders;
 
-use App\Models\User;
-// use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\Hash;
+use Infrastructure\Persistence\Eloquent\Models\UserModel;
 
 class DatabaseSeeder extends Seeder
 {
     /**
-     * Seed the application's database.
+     * Seed the application's database with a demo account so the API can be
+     * exercised straight away (see README / Postman collection).
      */
     public function run(): void
     {
-        // User::factory(10)->create();
-
-        User::factory()->create([
-            'name' => 'Test User',
-            'email' => 'test@example.com',
-        ]);
+        UserModel::query()->updateOrCreate(
+            ['email' => 'demo@giphy-hexagonal.test'],
+            [
+                'name' => 'Demo User',
+                'password' => Hash::make('password'),
+            ],
+        );
     }
 }
