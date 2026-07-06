@@ -8,7 +8,7 @@ use Illuminate\Support\Str;
 use Infrastructure\Persistence\Eloquent\Models\UserModel;
 
 /**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\Infrastructure\Persistence\Eloquent\Models\UserModel>
+ * @extends Factory<UserModel>
  */
 class UserFactory extends Factory
 {

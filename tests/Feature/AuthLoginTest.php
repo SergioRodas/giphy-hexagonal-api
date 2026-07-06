@@ -12,8 +12,8 @@ use Tests\TestCase;
 
 final class AuthLoginTest extends TestCase
 {
-    use RefreshDatabase;
     use InteractsWithPassport;
+    use RefreshDatabase;
 
     protected function setUp(): void
     {

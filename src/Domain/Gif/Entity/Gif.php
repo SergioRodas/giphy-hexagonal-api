@@ -20,8 +20,7 @@ final readonly class Gif
         private ?string $username,
         private GifImage $original,
         private ?GifImage $preview,
-    ) {
-    }
+    ) {}
 
     public function id(): GifId
     {

@@ -12,9 +12,7 @@ use Illuminate\Contracts\Hashing\Hasher;
  */
 final readonly class LaravelPasswordHasher implements PasswordHasher
 {
-    public function __construct(private Hasher $hasher)
-    {
-    }
+    public function __construct(private Hasher $hasher) {}
 
     public function verify(string $plainPassword, string $hashedPassword): bool
     {

@@ -32,8 +32,7 @@ final readonly class GiphyGifRepository implements GifRepository
         private int $timeout,
         private string $rating,
         private string $lang,
-    ) {
-    }
+    ) {}
 
     public function search(SearchCriteria $criteria): GifSearchResult
     {
@@ -87,7 +86,7 @@ final readonly class GiphyGifRepository implements GifRepository
     /**
      * Executes an HTTP call, translating transport failures into a domain error.
      *
-     * @param callable(): Response $request
+     * @param  callable(): Response  $request
      */
     private function send(callable $request): Response
     {

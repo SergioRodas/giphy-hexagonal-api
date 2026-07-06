@@ -13,7 +13,7 @@ final class GiphyGifMapperTest extends TestCase
     #[Test]
     public function it_maps_a_search_payload_to_the_domain_model(): void
     {
-        $mapper = new GiphyGifMapper();
+        $mapper = new GiphyGifMapper;
 
         $result = $mapper->toSearchResult([
             'data' => [
@@ -48,7 +48,7 @@ final class GiphyGifMapperTest extends TestCase
     #[Test]
     public function it_maps_a_missing_username_to_null(): void
     {
-        $mapper = new GiphyGifMapper();
+        $mapper = new GiphyGifMapper;
 
         $gif = $mapper->toGif([
             'id' => 'abc123',

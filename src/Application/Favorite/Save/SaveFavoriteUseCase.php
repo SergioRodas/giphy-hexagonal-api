@@ -25,8 +25,7 @@ final readonly class SaveFavoriteUseCase
     public function __construct(
         private FavoriteRepository $favorites,
         private UserRepository $users,
-    ) {
-    }
+    ) {}
 
     /**
      * @throws UserNotFound when the referenced user does not exist.

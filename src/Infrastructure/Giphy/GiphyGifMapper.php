@@ -17,7 +17,7 @@ use Domain\Gif\ValueObject\Pagination;
 final class GiphyGifMapper
 {
     /**
-     * @param array<string, mixed> $payload full search response body
+     * @param  array<string, mixed>  $payload  full search response body
      */
     public function toSearchResult(array $payload): GifSearchResult
     {
@@ -41,7 +41,7 @@ final class GiphyGifMapper
     }
 
     /**
-     * @param array<string, mixed> $data a single GIF resource
+     * @param  array<string, mixed>  $data  a single GIF resource
      */
     public function toGif(array $data): Gif
     {
@@ -61,7 +61,7 @@ final class GiphyGifMapper
     }
 
     /**
-     * @param array<string, mixed> $images
+     * @param  array<string, mixed>  $images
      */
     private function toPreviewImage(array $images): ?GifImage
     {
@@ -75,7 +75,7 @@ final class GiphyGifMapper
     }
 
     /**
-     * @param array<string, mixed> $image
+     * @param  array<string, mixed>  $image
      */
     private function toImage(array $image): GifImage
     {

@@ -13,9 +13,7 @@ use Domain\Gif\ValueObject\GifId;
  */
 final readonly class GetGifByIdUseCase
 {
-    public function __construct(private GifRepository $gifs)
-    {
-    }
+    public function __construct(private GifRepository $gifs) {}
 
     public function execute(GetGifByIdQuery $query): Gif
     {

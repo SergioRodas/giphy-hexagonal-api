@@ -25,7 +25,7 @@ final class AuthController
         return response()->json([
             'token_type' => $token->tokenType(),
             'access_token' => $token->accessToken(),
-            'expires_in' => $token->expiresIn(new DateTimeImmutable()),
+            'expires_in' => $token->expiresIn(new DateTimeImmutable),
             'expires_at' => $token->expiresAt()->format(DATE_ATOM),
         ]);
     }

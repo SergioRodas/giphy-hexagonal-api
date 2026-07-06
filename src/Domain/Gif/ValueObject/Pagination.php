@@ -13,8 +13,7 @@ final readonly class Pagination
         private int $totalCount,
         private int $count,
         private int $offset,
-    ) {
-    }
+    ) {}
 
     public function totalCount(): int
     {

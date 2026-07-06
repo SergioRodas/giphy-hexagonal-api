@@ -13,8 +13,7 @@ final readonly class GifImage
         private string $url,
         private int $width,
         private int $height,
-    ) {
-    }
+    ) {}
 
     public function url(): string
     {

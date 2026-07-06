@@ -13,6 +13,5 @@ final readonly class SaveFavoriteCommand
         public string $gifId,
         public string $alias,
         public int $userId,
-    ) {
-    }
+    ) {}
 }

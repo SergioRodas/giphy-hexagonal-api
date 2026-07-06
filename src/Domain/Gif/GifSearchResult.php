@@ -13,13 +13,12 @@ use Domain\Gif\ValueObject\Pagination;
 final readonly class GifSearchResult
 {
     /**
-     * @param list<Gif> $gifs
+     * @param  list<Gif>  $gifs
      */
     public function __construct(
         private array $gifs,
         private Pagination $pagination,
-    ) {
-    }
+    ) {}
 
     /**
      * @return list<Gif>

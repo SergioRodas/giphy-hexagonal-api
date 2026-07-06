@@ -17,9 +17,7 @@ final class FakeTokenIssuer implements TokenIssuer
 {
     public ?User $issuedFor = null;
 
-    public function __construct(private readonly string $token = 'fake-access-token')
-    {
-    }
+    public function __construct(private readonly string $token = 'fake-access-token') {}
 
     public function issueFor(User $user): AuthToken
     {

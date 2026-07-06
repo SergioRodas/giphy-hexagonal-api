@@ -22,8 +22,7 @@ final readonly class Favorite
         private GifId $gifId,
         private Alias $alias,
         private ?DateTimeImmutable $createdAt,
-    ) {
-    }
+    ) {}
 
     /**
      * Create a brand-new favorite that has not been persisted yet.

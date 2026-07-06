@@ -9,6 +9,7 @@ use Domain\Gif\Exception\GifNotFound;
 use Domain\Gif\GifSearchResult;
 use Domain\Gif\Repository\GifRepository;
 use Domain\Gif\ValueObject\GifId;
+use Domain\Gif\ValueObject\Pagination;
 use Domain\Gif\ValueObject\SearchCriteria;
 
 /**
@@ -21,9 +22,7 @@ final class FakeGifRepository implements GifRepository
     /** @var array<string, Gif> */
     private array $gifs = [];
 
-    public function __construct(private ?GifSearchResult $searchResult = null)
-    {
-    }
+    public function __construct(private ?GifSearchResult $searchResult = null) {}
 
     public function withGif(Gif $gif): self
     {
@@ -36,7 +35,7 @@ final class FakeGifRepository implements GifRepository
     {
         $this->lastCriteria = $criteria;
 
-        return $this->searchResult ?? new GifSearchResult([], new \Domain\Gif\ValueObject\Pagination(0, 0, 0));
+        return $this->searchResult ?? new GifSearchResult([], new Pagination(0, 0, 0));
     }
 
     public function findById(GifId $id): Gif

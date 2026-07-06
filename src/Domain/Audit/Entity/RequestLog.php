@@ -14,8 +14,8 @@ use Domain\User\ValueObject\UserId;
 final readonly class RequestLog
 {
     /**
-     * @param array<string, mixed> $requestBody
-     * @param array<string, mixed>|null $responseBody
+     * @param  array<string, mixed>  $requestBody
+     * @param  array<string, mixed>|null  $responseBody
      */
     public function __construct(
         private ?UserId $userId,
@@ -26,8 +26,7 @@ final readonly class RequestLog
         private int $statusCode,
         private ?array $responseBody,
         private string $ipAddress,
-    ) {
-    }
+    ) {}
 
     public function userId(): ?UserId
     {

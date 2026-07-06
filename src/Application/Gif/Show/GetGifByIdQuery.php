@@ -9,7 +9,5 @@ namespace Application\Gif\Show;
  */
 final readonly class GetGifByIdQuery
 {
-    public function __construct(public string $id)
-    {
-    }
+    public function __construct(public string $id) {}
 }

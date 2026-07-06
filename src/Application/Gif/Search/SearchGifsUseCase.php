@@ -13,9 +13,7 @@ use Domain\Gif\ValueObject\SearchCriteria;
  */
 final readonly class SearchGifsUseCase
 {
-    public function __construct(private GifRepository $gifs)
-    {
-    }
+    public function __construct(private GifRepository $gifs) {}
 
     public function execute(SearchGifsQuery $query): GifSearchResult
     {

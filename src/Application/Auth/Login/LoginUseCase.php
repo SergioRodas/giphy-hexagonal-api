@@ -23,8 +23,7 @@ final readonly class LoginUseCase
         private UserRepository $users,
         private PasswordHasher $passwordHasher,
         private TokenIssuer $tokenIssuer,
-    ) {
-    }
+    ) {}
 
     /**
      * @throws InvalidCredentials when the e-mail is unknown or the password is wrong.

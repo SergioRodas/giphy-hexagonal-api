@@ -33,7 +33,7 @@ final class PassportTokenIssuer implements TokenIssuer
 
         $expiration = $expiresAt !== null
             ? DateTimeImmutable::createFromInterface($expiresAt)
-            : (new DateTimeImmutable())->modify(
+            : (new DateTimeImmutable)->modify(
                 sprintf('+%d minutes', (int) config('tokens.access_token_ttl'))
             );
 

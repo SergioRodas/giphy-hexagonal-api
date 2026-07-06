@@ -19,12 +19,14 @@ use Tests\Support\InMemoryUserRepository;
 final class LoginUseCaseTest extends TestCase
 {
     private InMemoryUserRepository $users;
+
     private FakeTokenIssuer $tokenIssuer;
+
     private LoginUseCase $useCase;
 
     protected function setUp(): void
     {
-        $this->users = new InMemoryUserRepository();
+        $this->users = new InMemoryUserRepository;
         $this->users->add(new User(
             new UserId(1),
             'Demo User',
@@ -33,7 +35,7 @@ final class LoginUseCaseTest extends TestCase
         ));
 
         $this->tokenIssuer = new FakeTokenIssuer('issued-token');
-        $this->useCase = new LoginUseCase($this->users, new FakePasswordHasher(), $this->tokenIssuer);
+        $this->useCase = new LoginUseCase($this->users, new FakePasswordHasher, $this->tokenIssuer);
     }
 
     #[Test]

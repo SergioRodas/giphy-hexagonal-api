@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Infrastructure\Persistence\Eloquent\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Carbon;
 
 /**
  * Eloquent persistence model for a saved favorite GIF.
@@ -13,7 +14,7 @@ use Illuminate\Database\Eloquent\Model;
  * @property int $user_id
  * @property string $gif_id
  * @property string $alias
- * @property \Illuminate\Support\Carbon $created_at
+ * @property Carbon $created_at
  */
 class FavoriteModel extends Model
 {

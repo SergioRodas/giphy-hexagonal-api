@@ -13,6 +13,5 @@ final readonly class SearchGifsQuery
         public string $query,
         public ?int $limit = null,
         public ?int $offset = null,
-    ) {
-    }
+    ) {}
 }
