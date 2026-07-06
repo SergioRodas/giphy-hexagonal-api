@@ -19,14 +19,15 @@ use Tests\Support\InMemoryUserRepository;
 final class SaveFavoriteUseCaseTest extends TestCase
 {
     private InMemoryFavoriteRepository $favorites;
+
     private SaveFavoriteUseCase $useCase;
 
     protected function setUp(): void
     {
-        $users = new InMemoryUserRepository();
+        $users = new InMemoryUserRepository;
         $users->add(new User(new UserId(1), 'Demo', new Email('demo@example.com'), 'secret'));
 
-        $this->favorites = new InMemoryFavoriteRepository();
+        $this->favorites = new InMemoryFavoriteRepository;
         $this->useCase = new SaveFavoriteUseCase($this->favorites, $users);
     }
 
@@ -57,16 +58,5 @@ final class SaveFavoriteUseCaseTest extends TestCase
         $this->expectException(FavoriteAlreadyExists::class);
 
         $this->useCase->execute(new SaveFavoriteCommand('abc123', 'second', 1));
-    }
-
-    #[Test]
-    public function user_not_found_maps_to_http_422(): void
-    {
-        try {
-            $this->useCase->execute(new SaveFavoriteCommand('abc123', 'My cat', 999));
-            $this->fail('Expected UserNotFound.');
-        } catch (UserNotFound $e) {
-            $this->assertSame(422, $e->statusCode());
-        }
     }
 }

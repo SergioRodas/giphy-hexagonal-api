@@ -7,12 +7,14 @@ namespace Domain\Gif\ValueObject;
 use InvalidArgumentException;
 
 /**
- * Encapsulates the filters accepted by the GIF search use case and enforces
- * the boundaries imposed by the GIPHY API (limit 1..50, offset >= 0).
+ * Encapsulates the filters accepted by the GIF search use case and enforces its
+ * invariants: a non-empty query, a page size within [1, MAX_LIMIT] and a
+ * non-negative offset. MAX_LIMIT is the maximum page size the API exposes.
  */
 final readonly class SearchCriteria
 {
     public const int DEFAULT_LIMIT = 25;
+
     public const int MAX_LIMIT = 50;
 
     public function __construct(

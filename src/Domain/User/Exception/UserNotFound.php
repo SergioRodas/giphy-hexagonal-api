@@ -13,13 +13,4 @@ final class UserNotFound extends DomainException
     {
         return new self(sprintf('User with id %d was not found.', $id->value()));
     }
-
-    /**
-     * The user is referenced from the request body (not the URL), so a
-     * well-formed request that points to a non-existent user is unprocessable.
-     */
-    public function statusCode(): int
-    {
-        return 422;
-    }
 }

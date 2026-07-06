@@ -18,9 +18,4 @@ final class FavoriteAlreadyExists extends DomainException
             $gifId->value(),
         ));
     }
-
-    public function statusCode(): int
-    {
-        return 409;
-    }
 }

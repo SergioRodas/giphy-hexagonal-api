@@ -12,9 +12,4 @@ final class InvalidCredentials extends DomainException
     {
         return new self('The provided credentials are incorrect.');
     }
-
-    public function statusCode(): int
-    {
-        return 401;
-    }
 }

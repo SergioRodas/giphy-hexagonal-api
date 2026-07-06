@@ -13,12 +13,4 @@ final class GifProviderUnavailable extends DomainException
     {
         return new self('The GIF provider is currently unavailable.', 0, $previous);
     }
-
-    /**
-     * We act as a gateway to GIPHY; upstream failures surface as 502 Bad Gateway.
-     */
-    public function statusCode(): int
-    {
-        return 502;
-    }
 }

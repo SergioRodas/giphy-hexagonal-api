@@ -29,7 +29,7 @@ final class GetGifByIdUseCaseTest extends TestCase
             null,
         );
 
-        $useCase = new GetGifByIdUseCase((new FakeGifRepository())->withGif($gif));
+        $useCase = new GetGifByIdUseCase((new FakeGifRepository)->withGif($gif));
 
         $found = $useCase->execute(new GetGifByIdQuery('abc123'));
 
@@ -38,15 +38,12 @@ final class GetGifByIdUseCaseTest extends TestCase
     }
 
     #[Test]
-    public function it_propagates_a_not_found_error_mapped_to_http_404(): void
+    public function it_propagates_a_not_found_error_for_an_unknown_gif(): void
     {
-        $useCase = new GetGifByIdUseCase(new FakeGifRepository());
+        $useCase = new GetGifByIdUseCase(new FakeGifRepository);
 
-        try {
-            $useCase->execute(new GetGifByIdQuery('missing'));
-            $this->fail('Expected GifNotFound.');
-        } catch (GifNotFound $e) {
-            $this->assertSame(404, $e->statusCode());
-        }
+        $this->expectException(GifNotFound::class);
+
+        $useCase->execute(new GetGifByIdQuery('missing'));
     }
 }
