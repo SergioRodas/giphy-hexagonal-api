@@ -57,15 +57,16 @@ final class SaveFavoriteTest extends TestCase
     }
 
     #[Test]
-    public function it_rejects_a_favorite_for_a_non_existent_user_with_422(): void
+    public function it_forbids_saving_a_favorite_for_another_user(): void
     {
         Passport::actingAs($this->user);
 
+        // A token holder cannot create favorites owned by a different user (IDOR).
         $this->postJson('/api/favorites', [
             'gif_id' => 'Ev477g37MJORyOWfdG',
             'alias' => 'cat',
-            'user_id' => 999999,
-        ])->assertStatus(422)->assertJsonPath('error', 'user_not_found');
+            'user_id' => $this->user->id + 1,
+        ])->assertStatus(403)->assertJsonPath('error', 'forbidden');
     }
 
     #[Test]

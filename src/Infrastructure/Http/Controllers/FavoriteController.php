@@ -18,10 +18,21 @@ final class FavoriteController
      */
     public function store(SaveFavoriteRequest $request, SaveFavoriteUseCase $useCase): JsonResponse
     {
+        $userId = (int) $request->validated('user_id');
+
+        // The brief accepts user_id as input, but a token holder may only manage
+        // their own favorites: bind it to the authenticated principal (no IDOR).
+        if ($userId !== (int) $request->user()->getAuthIdentifier()) {
+            return response()->json([
+                'error' => 'forbidden',
+                'message' => 'You can only save favorites for your own account.',
+            ], Response::HTTP_FORBIDDEN);
+        }
+
         $favorite = $useCase->execute(new SaveFavoriteCommand(
             (string) $request->validated('gif_id'),
             (string) $request->validated('alias'),
-            (int) $request->validated('user_id'),
+            $userId,
         ));
 
         return FavoriteResource::make($favorite)
