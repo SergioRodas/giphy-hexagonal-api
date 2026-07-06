@@ -9,9 +9,11 @@ FROM php:8.3-fpm AS app
 RUN apt-get update && apt-get install -y --no-install-recommends \
         git \
         unzip \
+        pkg-config \
         libonig-dev \
         libzip-dev \
-    && docker-php-ext-install -j"$(nproc)" pdo_mysql mbstring bcmath opcache zip \
+        libsqlite3-dev \
+    && docker-php-ext-install -j"$(nproc)" pdo_mysql pdo_sqlite mbstring bcmath opcache zip \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 

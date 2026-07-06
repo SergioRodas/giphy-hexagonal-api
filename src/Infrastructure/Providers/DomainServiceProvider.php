@@ -44,6 +44,10 @@ final class DomainServiceProvider extends ServiceProvider
 
     public function register(): void
     {
+        // Share a single HTTP client factory so the Http facade (and Http::fake()
+        // in tests) and the injected GIPHY adapter operate on the same instance.
+        $this->app->singleton(HttpClient::class);
+
         // The GIPHY adapter needs configuration primitives, so it is wired by hand.
         $this->app->singleton(GifRepository::class, function (Application $app): GiphyGifRepository {
             /** @var array<string, mixed> $config */
