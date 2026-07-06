@@ -6,7 +6,6 @@ use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Http\Request;
 use Infrastructure\Http\Middleware\LogInteraction;
-use Throwable;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -26,7 +25,7 @@ return Application::configure(basePath: dirname(__DIR__))
         );
 
         // Domain rule violations carry their own HTTP status.
-        $exceptions->render(function (DomainException $e, Request $request) {
+        $exceptions->render(function (DomainException $e) {
             return response()->json([
                 'error' => $e->errorCode(),
                 'message' => $e->getMessage(),
