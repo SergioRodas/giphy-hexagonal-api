@@ -122,12 +122,25 @@
 <script>
   let token = localStorage.getItem('gh_token') || '';
   let userId = localStorage.getItem('gh_user_id') || '';
+  let expiresAt = localStorage.getItem('gh_expires_at') || '';
   const $ = (id) => document.getElementById(id);
+
+  function sessionExpired() {
+    return Boolean(token && expiresAt && Date.parse(expiresAt) <= Date.now());
+  }
 
   function refreshBadge() {
     const b = $('tokenBadge');
-    if (token) { b.textContent = 'Authenticated · user #' + (userId || '?'); b.classList.add('on'); }
-    else { b.textContent = 'Not authenticated'; b.classList.remove('on'); }
+    if (!token) {
+      b.textContent = 'Not authenticated';
+      b.classList.remove('on');
+    } else if (sessionExpired()) {
+      b.textContent = 'Session expired · log in again';
+      b.classList.remove('on');
+    } else {
+      b.textContent = 'Authenticated · user #' + (userId || '?');
+      b.classList.add('on');
+    }
     if (userId && !$('userId').value) $('userId').value = userId;
   }
 
@@ -204,7 +217,16 @@
     if (elapsed < 300) await new Promise((r) => setTimeout(r, 300 - elapsed));
     setBusy(false, button);
     busy = false;
-    if (result) show(result.status, result.ok, result.body, result.gifs);
+    if (result) {
+      // A 401 on an authenticated call means the stored token is no longer
+      // valid (expired or revoked): reflect it in the badge immediately.
+      if (result.status === 401 && token) {
+        expiresAt = new Date(0).toISOString();
+        localStorage.setItem('gh_expires_at', expiresAt);
+        refreshBadge();
+      }
+      show(result.status, result.ok, result.body, result.gifs);
+    }
   }
 
   function login(button) {
@@ -213,8 +235,10 @@
       if (r.ok && r.json.access_token) {
         token = r.json.access_token;
         userId = decodeSub(token) || '';
+        expiresAt = r.json.expires_at || '';
         localStorage.setItem('gh_token', token);
         localStorage.setItem('gh_user_id', userId);
+        localStorage.setItem('gh_expires_at', expiresAt);
         $('userId').value = userId;
       }
       refreshBadge();
@@ -247,6 +271,8 @@
   }
 
   refreshBadge();
+  // Flip the badge to "Session expired" on its own once the token TTL passes.
+  setInterval(refreshBadge, 30000);
 </script>
 </body>
 </html>
