@@ -19,6 +19,14 @@ use Domain\User\Repository\UserRepository;
  */
 final readonly class LoginUseCase
 {
+    /**
+     * Bcrypt hash of a random sentinel, verified against when the e-mail is
+     * unknown so both failure paths cost one hash comparison. Without it,
+     * unknown accounts would respond measurably faster than wrong passwords,
+     * enabling user enumeration through timing.
+     */
+    private const string DUMMY_HASH = '$2y$12$m5q3NrNlutsMZ.KoleIErOSYJFr6G4T6cUW9JFdROtomMfZL1rXC6';
+
     public function __construct(
         private UserRepository $users,
         private PasswordHasher $passwordHasher,
@@ -39,7 +47,12 @@ final readonly class LoginUseCase
 
         $user = $this->users->findByEmail($email);
 
-        if ($user === null || ! $this->passwordHasher->verify($command->password, $user->hashedPassword())) {
+        $verified = $this->passwordHasher->verify(
+            $command->password,
+            $user?->hashedPassword() ?? self::DUMMY_HASH,
+        );
+
+        if ($user === null || ! $verified) {
             throw InvalidCredentials::create();
         }
 
