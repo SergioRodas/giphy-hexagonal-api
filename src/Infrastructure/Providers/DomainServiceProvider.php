@@ -39,7 +39,6 @@ final class DomainServiceProvider extends ServiceProvider
         FavoriteRepository::class => EloquentFavoriteRepository::class,
         RequestLogRepository::class => EloquentRequestLogRepository::class,
         PasswordHasher::class => LaravelPasswordHasher::class,
-        TokenIssuer::class => PassportTokenIssuer::class,
     ];
 
     public function register(): void
@@ -47,6 +46,12 @@ final class DomainServiceProvider extends ServiceProvider
         // Share a single HTTP client factory so the Http facade (and Http::fake()
         // in tests) and the injected GIPHY adapter operate on the same instance.
         $this->app->singleton(HttpClient::class);
+
+        // Wired by hand: the adapter receives the token TTL as a plain value so
+        // it does not reach for the config() helper at runtime.
+        $this->app->singleton(TokenIssuer::class, fn (): PassportTokenIssuer => new PassportTokenIssuer(
+            (int) config('tokens.access_token_ttl'),
+        ));
 
         // The GIPHY adapter needs configuration primitives, so it is wired by hand.
         $this->app->singleton(GifRepository::class, function (Application $app): GiphyGifRepository {

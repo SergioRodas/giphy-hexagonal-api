@@ -14,11 +14,17 @@ use RuntimeException;
 /**
  * Issues OAuth2 access tokens through Laravel Passport (the OAuth2 server).
  *
- * The token lifetime is governed globally by Passport::personalAccessTokensExpireIn()
- * configured in the service provider, honouring the 30-minute requirement.
+ * Passport can only mint personal-access tokens from an Eloquent model, while
+ * the domain {@see User} is deliberately persistence-agnostic — so this adapter
+ * re-hydrates the model by id (one indexed lookup per login). The token
+ * lifetime is governed globally by Passport::personalAccessTokensExpireIn()
+ * (see DomainServiceProvider); the injected TTL is only a fallback when the
+ * Passport token carries no expiry.
  */
-final class PassportTokenIssuer implements TokenIssuer
+final readonly class PassportTokenIssuer implements TokenIssuer
 {
+    public function __construct(private int $ttlMinutes) {}
+
     public function issueFor(User $user): AuthToken
     {
         $model = UserModel::query()->find($user->id()->value());
@@ -33,9 +39,7 @@ final class PassportTokenIssuer implements TokenIssuer
 
         $expiration = $expiresAt !== null
             ? DateTimeImmutable::createFromInterface($expiresAt)
-            : (new DateTimeImmutable)->modify(
-                sprintf('+%d minutes', (int) config('tokens.access_token_ttl'))
-            );
+            : (new DateTimeImmutable)->modify(sprintf('+%d minutes', $this->ttlMinutes));
 
         return new AuthToken($result->accessToken, $expiration);
     }
