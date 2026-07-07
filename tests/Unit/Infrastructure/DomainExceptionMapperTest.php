@@ -6,6 +6,7 @@ namespace Tests\Unit\Infrastructure;
 
 use Domain\Auth\Exception\InvalidCredentials;
 use Domain\Favorite\Exception\FavoriteAlreadyExists;
+use Domain\Favorite\Exception\FavoriteOwnershipViolation;
 use Domain\Gif\Exception\GifNotFound;
 use Domain\Gif\Exception\GifProviderUnavailable;
 use Domain\Gif\ValueObject\GifId;
@@ -26,6 +27,7 @@ final class DomainExceptionMapperTest extends TestCase
     {
         return [
             'invalid credentials -> 401' => [InvalidCredentials::create(), 401, 'invalid_credentials'],
+            'ownership violation -> 403' => [FavoriteOwnershipViolation::create(), 403, 'favorite_ownership_violation'],
             'gif not found -> 404' => [GifNotFound::withId(new GifId('abc123')), 404, 'gif_not_found'],
             'favorite conflict -> 409' => [FavoriteAlreadyExists::forUserAndGif(new UserId(1), new GifId('abc123')), 409, 'favorite_already_exists'],
             'provider down -> 502' => [GifProviderUnavailable::create(), 502, 'gif_provider_unavailable'],

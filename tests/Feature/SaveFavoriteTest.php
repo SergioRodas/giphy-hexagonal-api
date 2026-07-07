@@ -66,7 +66,7 @@ final class SaveFavoriteTest extends TestCase
             'gif_id' => 'Ev477g37MJORyOWfdG',
             'alias' => 'cat',
             'user_id' => $this->user->id + 1,
-        ])->assertStatus(403)->assertJsonPath('error', 'forbidden');
+        ])->assertStatus(403)->assertJsonPath('error', 'favorite_ownership_violation');
     }
 
     #[Test]

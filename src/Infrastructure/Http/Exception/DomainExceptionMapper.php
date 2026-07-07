@@ -6,6 +6,7 @@ namespace Infrastructure\Http\Exception;
 
 use Domain\Auth\Exception\InvalidCredentials;
 use Domain\Favorite\Exception\FavoriteAlreadyExists;
+use Domain\Favorite\Exception\FavoriteOwnershipViolation;
 use Domain\Gif\Exception\GifNotFound;
 use Domain\Gif\Exception\GifProviderUnavailable;
 use Domain\Shared\Exception\DomainException;
@@ -32,6 +33,7 @@ final class DomainExceptionMapper
     {
         return match (true) {
             $exception instanceof InvalidCredentials => Response::HTTP_UNAUTHORIZED,          // 401
+            $exception instanceof FavoriteOwnershipViolation => Response::HTTP_FORBIDDEN,      // 403
             $exception instanceof GifNotFound => Response::HTTP_NOT_FOUND,                     // 404
             $exception instanceof FavoriteAlreadyExists => Response::HTTP_CONFLICT,            // 409
             $exception instanceof GifProviderUnavailable => Response::HTTP_BAD_GATEWAY,        // 502
