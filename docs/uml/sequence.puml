@@ -52,14 +52,15 @@ LOG -> DB : INSERT request_logs
 
 == Save Favorite GIF ==
 C -> FC : POST /api/favorites {gif_id, alias, user_id} (Bearer)
-FC -> UC : SaveFavoriteUseCase.execute(SaveFavoriteCommand)
+FC -> UC : SaveFavoriteUseCase.execute(SaveFavoriteCommand\nincl. authenticated user id)
+note over UC : ownership rule: user_id must match the\nauthenticated principal, else FavoriteOwnershipViolation (403)
 UC -> PORT : UserRepository.exists / FavoriteRepository.existsForUserAndGif
 PORT -> DB : SELECT users / favorites
 UC -> PORT : FavoriteRepository.save(Favorite)
 PORT -> DB : INSERT favorites
 PORT --> UC : Favorite / UserNotFound / FavoriteAlreadyExists
 UC --> FC : Favorite
-FC --> C : 201 {data} / 422 / 409
+FC --> C : 201 {data} / 403 / 422 / 409
 FC -> LOG : response sent
 LOG -> DB : INSERT request_logs
 @enduml

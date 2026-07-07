@@ -162,29 +162,38 @@ sequenceDiagram
 
     C->>Ctrl: POST /api/favorites {gif_id, alias, user_id} (Bearer token)
     Note over Ctrl: auth:api + SaveFavoriteRequest (401 / 422)
-    Ctrl->>UC: execute(SaveFavoriteCommand)
-    UC->>UR: exists(UserId)
-    UR->>DB: SELECT 1 FROM users
-    alt user missing
-        UC-->>Ctrl: throw UserNotFound
-        Ctrl-->>C: 422 {error: user_not_found}
-    else user exists
-        UC->>FR: existsForUserAndGif(UserId, GifId)
-        FR->>DB: SELECT 1 FROM favorites
-        alt duplicate
-            UC-->>Ctrl: throw FavoriteAlreadyExists
-            Ctrl-->>C: 409 {error: favorite_already_exists}
-        else new
-            UC->>FR: save(Favorite)
-            FR->>DB: INSERT favorites
-            FR-->>UC: Favorite (with id)
-            UC-->>Ctrl: Favorite
-            Ctrl-->>C: 201 {data}
+    Ctrl->>UC: execute(SaveFavoriteCommand incl. authenticated user id)
+    alt user_id ≠ authenticated user (ownership rule)
+        UC-->>Ctrl: throw FavoriteOwnershipViolation
+        Ctrl-->>C: 403 {error: favorite_ownership_violation}
+    else owner matches
+        UC->>UR: exists(UserId)
+        UR->>DB: SELECT 1 FROM users
+        alt user missing
+            UC-->>Ctrl: throw UserNotFound
+            Ctrl-->>C: 422 {error: user_not_found}
+        else user exists
+            UC->>FR: existsForUserAndGif(UserId, GifId)
+            FR->>DB: SELECT 1 FROM favorites
+            alt duplicate
+                UC-->>Ctrl: throw FavoriteAlreadyExists
+                Ctrl-->>C: 409 {error: favorite_already_exists}
+            else new
+                UC->>FR: save(Favorite)
+                FR->>DB: INSERT favorites
+                FR-->>UC: Favorite (with id)
+                UC-->>Ctrl: Favorite
+                Ctrl-->>C: 201 {data}
+            end
         end
     end
     Ctrl-->>LOG: response sent
     LOG->>DB: INSERT request_logs
 ```
+
+> The ownership rule (a token holder may only save favorites for their own
+> account) lives in `SaveFavoriteUseCase`, so it applies to any adapter that
+> invokes the use case — not just the HTTP controller.
 
 ---
 
