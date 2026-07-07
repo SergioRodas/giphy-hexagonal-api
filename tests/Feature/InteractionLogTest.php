@@ -24,8 +24,12 @@ final class InteractionLogTest extends TestCase
         $this->ensurePassportReady();
         UserModel::factory()->create(['email' => 'demo@example.com']);
 
-        $this->postJson('/api/login', ['email' => 'demo@example.com', 'password' => 'password'])
-            ->assertOk();
+        $this->postJson('/api/login', [
+            'email' => 'demo@example.com',
+            'password' => 'password',
+            // Extra nested payload: redaction must reach any depth.
+            'meta' => ['credentials' => ['password' => 'nested-secret']],
+        ])->assertOk();
 
         $log = RequestLogModel::query()->where('service', 'auth.login')->firstOrFail();
 
@@ -35,6 +39,7 @@ final class InteractionLogTest extends TestCase
         $this->assertNotNull($log->ip_address);
         // Secrets are never stored in clear text (request password + issued token).
         $this->assertSame('[REDACTED]', $log->request_body['password']);
+        $this->assertSame('[REDACTED]', $log->request_body['meta']['credentials']['password']);
         $this->assertSame('[REDACTED]', $log->response_body['access_token']);
     }
 

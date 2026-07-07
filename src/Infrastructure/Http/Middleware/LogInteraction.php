@@ -113,15 +113,20 @@ final class LogInteraction
     }
 
     /**
-     * @param  array<string, mixed>  $data
+     * Masks sensitive fields at any nesting depth, so future endpoints with
+     * nested payloads cannot accidentally persist a secret.
+     *
+     * @param  array<array-key, mixed>  $data
      * @param  list<string>  $fields
-     * @return array<string, mixed>
+     * @return array<array-key, mixed>
      */
     private function redact(array $data, array $fields): array
     {
-        foreach ($fields as $field) {
-            if (array_key_exists($field, $data)) {
-                $data[$field] = '[REDACTED]';
+        foreach ($data as $key => $value) {
+            if (in_array($key, $fields, true)) {
+                $data[$key] = '[REDACTED]';
+            } elseif (is_array($value)) {
+                $data[$key] = $this->redact($value, $fields);
             }
         }
 
