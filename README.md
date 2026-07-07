@@ -8,7 +8,7 @@ Architecture + DDD** and **OAuth2** (Laravel Passport).
 ![Laravel](https://img.shields.io/badge/Laravel-12-FF2D20?logo=laravel&logoColor=white)
 ![OAuth2](https://img.shields.io/badge/Auth-OAuth2%20(Passport)-46A2F1)
 ![Database](https://img.shields.io/badge/DB-MariaDB%2011-003545?logo=mariadb&logoColor=white)
-![Tests](https://img.shields.io/badge/tests-48%20passing-2ea44f)
+![Tests](https://img.shields.io/badge/tests-57%20passing-2ea44f)
 
 ---
 
@@ -326,7 +326,7 @@ docker compose exec db mariadb -ugiphy -psecret giphy \
 
 ## Testing
 
-48 tests (113 assertions) run against an in-memory SQLite database:
+57 tests (134 assertions) run against an in-memory SQLite database:
 
 ```bash
 docker compose exec app php artisan config:clear   # tests use the sqlite override
@@ -399,9 +399,18 @@ Key environment variables (see [.env.example](.env.example)):
   credentials in the application layer (a testable domain rule) and then issues a
   Bearer access token through the OAuth2 server; protected routes use the
   `auth:api` (Passport) guard. Tokens expire in 30 minutes.
-- **`user_id` in the favorites body.** Accepted as input per the brief, but bound
-  to the authenticated principal: a request whose `user_id` differs from the
-  token's user is rejected with `403`, preventing cross-account writes (IDOR).
+- **`user_id` in the favorites body.** Accepted as input per the brief, but the
+  ownership rule is enforced **in the application layer** (`SaveFavoriteUseCase`):
+  a command whose `user_id` differs from the authenticated principal throws
+  `FavoriteOwnershipViolation` (rendered as `403`), so cross-account writes are
+  impossible no matter which adapter invokes the use case.
+- **Deliberately lean domain model.** Entities and value objects are immutable
+  and enforce their invariants, while orchestration lives in the use cases —
+  "DDD-lite" by design for this problem size, where the four use cases have no
+  competing invariants that would justify behavior-rich aggregates.
+- **`APP_DEBUG=true` in the local stack.** The Docker stack is a local review
+  environment, so debug output is enabled for convenience. Set `APP_ENV=production`
+  / `APP_DEBUG=false` before exposing it anywhere.
 - **`config.platform.php = 8.3`** pins Composer's resolver to the runtime PHP so
   the lock file is reproducible against the Docker image.
 
@@ -412,9 +421,15 @@ Applied after an adversarial self-review of the codebase:
 - OAuth2 Bearer auth on every service; login (`10/min`) and the authenticated
   group (`60/min`) are rate-limited against brute force / abuse.
 - `password` (request) and issued `access_token` (response) are redacted from the
-  audit log.
-- Favorites are bound to the authenticated user (no IDOR).
+  audit log — recursively, at any nesting depth.
+- Favorite ownership is a use-case rule (`403` on mismatch), not a controller
+  check — no IDOR from any adapter.
 - The favorites unique constraint is enforced atomically (concurrent duplicate →
   `409`, not `500`).
+- Login verifies against a dummy hash when the account is unknown, so unknown
+  e-mail and wrong password take the same time (no user enumeration by timing).
+- Value objects raise a domain `InvalidInput` (→ `422`); generic framework
+  exceptions are never rendered as client errors, so server bugs stay visible
+  as `500`s.
 - HTTP status mapping lives in the infrastructure layer, keeping the domain free
   of transport concerns.
