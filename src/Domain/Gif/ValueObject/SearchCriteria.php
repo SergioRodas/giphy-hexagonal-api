@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Domain\Gif\ValueObject;
 
-use InvalidArgumentException;
+use Domain\Shared\Exception\InvalidInput;
 
 /**
  * Encapsulates the filters accepted by the GIF search use case and enforces its
@@ -23,17 +23,17 @@ final readonly class SearchCriteria
         private int $offset = 0,
     ) {
         if (trim($query) === '') {
-            throw new InvalidArgumentException('Search query is required.');
+            throw InvalidInput::because('Search query is required.');
         }
 
         if ($limit < 1 || $limit > self::MAX_LIMIT) {
-            throw new InvalidArgumentException(
+            throw InvalidInput::because(
                 sprintf('Limit must be between 1 and %d.', self::MAX_LIMIT)
             );
         }
 
         if ($offset < 0) {
-            throw new InvalidArgumentException('Offset must be zero or greater.');
+            throw InvalidInput::because('Offset must be zero or greater.');
         }
     }
 

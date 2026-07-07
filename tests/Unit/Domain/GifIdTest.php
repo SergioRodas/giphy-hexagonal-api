@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Tests\Unit\Domain;
 
 use Domain\Gif\ValueObject\GifId;
-use InvalidArgumentException;
+use Domain\Shared\Exception\InvalidInput;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 
@@ -22,7 +22,7 @@ final class GifIdTest extends TestCase
     #[Test]
     public function it_rejects_an_empty_identifier(): void
     {
-        $this->expectException(InvalidArgumentException::class);
+        $this->expectException(InvalidInput::class);
 
         new GifId('   ');
     }
@@ -30,7 +30,7 @@ final class GifIdTest extends TestCase
     #[Test]
     public function it_rejects_non_alphanumeric_characters(): void
     {
-        $this->expectException(InvalidArgumentException::class);
+        $this->expectException(InvalidInput::class);
 
         new GifId('abc-123/../etc');
     }

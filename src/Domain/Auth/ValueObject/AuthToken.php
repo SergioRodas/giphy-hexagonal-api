@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Domain\Auth\ValueObject;
 
 use DateTimeImmutable;
-use InvalidArgumentException;
+use Domain\Shared\Exception\InvalidInput;
 
 /**
  * An issued OAuth2 access token together with its lifetime.
@@ -18,7 +18,7 @@ final readonly class AuthToken
         private string $tokenType = 'Bearer',
     ) {
         if (trim($accessToken) === '') {
-            throw new InvalidArgumentException('Access token cannot be empty.');
+            throw InvalidInput::because('Access token cannot be empty.');
         }
     }
 

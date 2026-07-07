@@ -8,9 +8,9 @@ use Domain\Auth\Contract\PasswordHasher;
 use Domain\Auth\Contract\TokenIssuer;
 use Domain\Auth\Exception\InvalidCredentials;
 use Domain\Auth\ValueObject\AuthToken;
+use Domain\Shared\Exception\InvalidInput;
 use Domain\Shared\ValueObject\Email;
 use Domain\User\Repository\UserRepository;
-use InvalidArgumentException;
 
 /**
  * Authenticates a user by e-mail/password and, on success, issues an OAuth2
@@ -32,7 +32,7 @@ final readonly class LoginUseCase
     {
         try {
             $email = new Email($command->email);
-        } catch (InvalidArgumentException) {
+        } catch (InvalidInput) {
             // A malformed e-mail can never match a stored account.
             throw InvalidCredentials::create();
         }

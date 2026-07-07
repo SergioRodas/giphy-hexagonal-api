@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Domain\Gif\ValueObject;
 
-use InvalidArgumentException;
+use Domain\Shared\Exception\InvalidInput;
 
 /**
  * Identity of a GIPHY GIF.
@@ -21,11 +21,11 @@ final readonly class GifId
         $normalized = trim($value);
 
         if ($normalized === '') {
-            throw new InvalidArgumentException('GifId cannot be empty.');
+            throw InvalidInput::because('GifId cannot be empty.');
         }
 
         if (! preg_match('/^[A-Za-z0-9]+$/', $normalized)) {
-            throw new InvalidArgumentException('GifId must be alphanumeric.');
+            throw InvalidInput::because('GifId must be alphanumeric.');
         }
     }
 

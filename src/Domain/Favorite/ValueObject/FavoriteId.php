@@ -4,14 +4,14 @@ declare(strict_types=1);
 
 namespace Domain\Favorite\ValueObject;
 
-use InvalidArgumentException;
+use Domain\Shared\Exception\InvalidInput;
 
 final readonly class FavoriteId
 {
     public function __construct(private int $value)
     {
         if ($value <= 0) {
-            throw new InvalidArgumentException('FavoriteId must be a positive integer.');
+            throw InvalidInput::because('FavoriteId must be a positive integer.');
         }
     }
 

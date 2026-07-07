@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Domain\Favorite\ValueObject;
 
-use InvalidArgumentException;
+use Domain\Shared\Exception\InvalidInput;
 
 /**
  * Human-friendly label a user assigns to a favorited GIF.
@@ -18,11 +18,11 @@ final readonly class Alias
         $normalized = trim($value);
 
         if ($normalized === '') {
-            throw new InvalidArgumentException('Alias is required.');
+            throw InvalidInput::because('Alias is required.');
         }
 
         if (mb_strlen($normalized) > self::MAX_LENGTH) {
-            throw new InvalidArgumentException(
+            throw InvalidInput::because(
                 sprintf('Alias must not exceed %d characters.', self::MAX_LENGTH)
             );
         }

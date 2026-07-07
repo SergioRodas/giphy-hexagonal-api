@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Tests\Unit\Domain;
 
 use Domain\Gif\ValueObject\SearchCriteria;
-use InvalidArgumentException;
+use Domain\Shared\Exception\InvalidInput;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 
@@ -24,7 +24,7 @@ final class SearchCriteriaTest extends TestCase
     #[Test]
     public function it_rejects_an_empty_query(): void
     {
-        $this->expectException(InvalidArgumentException::class);
+        $this->expectException(InvalidInput::class);
 
         new SearchCriteria('   ');
     }
@@ -32,7 +32,7 @@ final class SearchCriteriaTest extends TestCase
     #[Test]
     public function it_rejects_a_limit_above_the_provider_maximum(): void
     {
-        $this->expectException(InvalidArgumentException::class);
+        $this->expectException(InvalidInput::class);
 
         new SearchCriteria('cats', SearchCriteria::MAX_LIMIT + 1);
     }
@@ -40,7 +40,7 @@ final class SearchCriteriaTest extends TestCase
     #[Test]
     public function it_rejects_a_negative_offset(): void
     {
-        $this->expectException(InvalidArgumentException::class);
+        $this->expectException(InvalidInput::class);
 
         new SearchCriteria('cats', 10, -1);
     }

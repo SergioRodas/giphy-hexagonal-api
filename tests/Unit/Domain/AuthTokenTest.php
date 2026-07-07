@@ -6,7 +6,7 @@ namespace Tests\Unit\Domain;
 
 use DateTimeImmutable;
 use Domain\Auth\ValueObject\AuthToken;
-use InvalidArgumentException;
+use Domain\Shared\Exception\InvalidInput;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 
@@ -43,7 +43,7 @@ final class AuthTokenTest extends TestCase
     #[Test]
     public function it_rejects_an_empty_access_token(): void
     {
-        $this->expectException(InvalidArgumentException::class);
+        $this->expectException(InvalidInput::class);
 
         new AuthToken('   ', new DateTimeImmutable('2026-01-01T00:30:00+00:00'));
     }

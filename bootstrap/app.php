@@ -28,20 +28,12 @@ return Application::configure(basePath: dirname(__DIR__))
             fn (Request $request, Throwable $e) => $request->is('api/*') || $request->expectsJson()
         );
 
-        // Domain rule violations are mapped to HTTP by the infrastructure layer.
+        // Domain rule violations (including value-object InvalidInput guards)
+        // are mapped to HTTP by the infrastructure layer. Generic SPL exceptions
+        // are deliberately NOT rendered as client errors: an unexpected
+        // InvalidArgumentException from framework/vendor code is a server bug
+        // and must surface as a 500.
         $exceptions->render(
             fn (DomainException $e) => (new DomainExceptionMapper)->toResponse($e)
         );
-
-        // Value-object guards throw InvalidArgumentException -> 422 for the API.
-        $exceptions->render(function (InvalidArgumentException $e, Request $request) {
-            if ($request->is('api/*') || $request->expectsJson()) {
-                return response()->json([
-                    'error' => 'invalid_argument',
-                    'message' => $e->getMessage(),
-                ], 422);
-            }
-
-            return null;
-        });
     })->create();

@@ -79,6 +79,17 @@ final class GifEndpointsTest extends TestCase
     }
 
     #[Test]
+    public function a_malformed_gif_id_is_rejected_with_422(): void
+    {
+        Passport::actingAs($this->user);
+
+        // The GifId value object guards the format; no provider call is made.
+        $this->getJson('/api/gifs/not..a--valid__id!')
+            ->assertStatus(422)
+            ->assertJsonPath('error', 'invalid_input');
+    }
+
+    #[Test]
     public function it_returns_502_when_the_provider_is_unavailable(): void
     {
         Http::fake(['*/gifs/search*' => Http::response('gateway error', 500)]);

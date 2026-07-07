@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Domain\User\ValueObject;
 
-use InvalidArgumentException;
+use Domain\Shared\Exception\InvalidInput;
 
 /**
  * Identity of a User. Backed by a positive integer to match the persistence key.
@@ -14,7 +14,7 @@ final readonly class UserId
     public function __construct(private int $value)
     {
         if ($value <= 0) {
-            throw new InvalidArgumentException('UserId must be a positive integer.');
+            throw InvalidInput::because('UserId must be a positive integer.');
         }
     }
 

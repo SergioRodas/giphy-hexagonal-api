@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Domain;
 
+use Domain\Shared\Exception\InvalidInput;
 use Domain\Shared\ValueObject\Email;
-use InvalidArgumentException;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 
@@ -28,7 +28,7 @@ final class EmailTest extends TestCase
     #[Test]
     public function it_rejects_an_invalid_address(): void
     {
-        $this->expectException(InvalidArgumentException::class);
+        $this->expectException(InvalidInput::class);
 
         new Email('not-an-email');
     }
@@ -36,7 +36,7 @@ final class EmailTest extends TestCase
     #[Test]
     public function it_rejects_an_empty_address(): void
     {
-        $this->expectException(InvalidArgumentException::class);
+        $this->expectException(InvalidInput::class);
 
         new Email('   ');
     }

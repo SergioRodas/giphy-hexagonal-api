@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Domain\Shared\ValueObject;
 
-use InvalidArgumentException;
+use Domain\Shared\Exception\InvalidInput;
 
 /**
  * Immutable e-mail address. Guarantees any Email instance is syntactically valid.
@@ -16,7 +16,7 @@ final readonly class Email
         $normalized = trim($value);
 
         if ($normalized === '' || filter_var($normalized, FILTER_VALIDATE_EMAIL) === false) {
-            throw new InvalidArgumentException(sprintf('"%s" is not a valid e-mail address.', $value));
+            throw InvalidInput::because(sprintf('"%s" is not a valid e-mail address.', $value));
         }
     }
 
